@@ -1,11 +1,11 @@
-import { Console } from "@woowacourse/mission-utils";
-
+import { MissionUtils } from "@woowacourse/mission-utils";
+import {StringAdder} from "./StringAdder.js";
 class App {
   async run() {
-    var input = Console.readLineAsync();
-    const stringAdder = new stringAdder(input);
+    var input = await MissionUtils.Console.readLineAsync("덧셈할 문자열을 입력하세요.\n");
+    const stringAdder = new StringAdder(input);
     stringAdder.doCalculator();
-  }
+  } 
 }
 
 export default App;

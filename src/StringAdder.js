@@ -1,13 +1,13 @@
-import { Console } from "@woowacourse/mission-utils";
+import { MissionUtils } from "@woowacourse/mission-utils";
 
 
-const CalculatorType = Object.freeze({
+export const CalculatorType = Object.freeze({
     basic : Symbol(0),
     custom : Symbol(1),
     error : Symbol(2)
 });
 
-class StringAdder {
+export class StringAdder {
     constructor(input) {
         this.input = input;
         this.result = 0;
@@ -16,40 +16,71 @@ class StringAdder {
     }
 
     // 구분자 판단, 계산기 선택
+    // getSeperator(input) {
+    //     console.log(input[0])
+    //     if (input.length == 0){ // 입력이 없을 경우 결과 값 0
+    //         this.type = CalculatorType.basic;
+    //         return;
+    //     }
+    //     // if (Number(input[0]) != Number.Nan) { // 기본계산기
+    //     if (!isNaN(Number(input[0]))) { 
+    //         return;
+    //     }
+    //     let idx = 0;
+    //     let isFindSeperator = false;
+    //     while (idx<input.length){
+    //         if ((idx == 0 || idx==1) && input[idx]!='/'){
+    //             break;
+    //         }
+    //         while (idx>=2 && idx < input.length && input[idx]!='\n'){
+    //             console.log(input[idx])
+    //             this.seperator += input[idx]; 
+    //             idx++;
+    //         }
+    //         if (idx < input.length && input[idx]=='\n'){
+    //             isFindSeperator = true;
+    //             break;
+    //         }
+    //         idx++;
+    //     }
+    //     if (isFindSeperator){
+    //         this.type = CalculatorType.custom;
+    //         this.input = input.substr(idx+1, input.length - idx);    
+    //         console.log(this.seperator);
+    //     }else{
+    //         this.type = CalculatorType.error;
+    //     }
+    //     return;
+    // }
+
     getSeperator(input) {
-        if (input.length() == 0){ // 입력이 없을 경우 오류
-            this.type = CalculatorType.error;
+        // 입력이 빈 문자열인 경우
+        if (input.length == 0) {
+            this.type = CalculatorType.basic;
             return;
         }
-
-        if (Number(input[0])) { // 기본계산기
+    
+        // 기본 구분자 (숫자로 시작하면 기본 계산기로 처리)
+        if (!isNaN(Number(input[0]))) { 
             return;
         }
-
-        let idx = 0;
-        let isFindSeperator = false;
-        while (idx<input.length){
-            if ((idx == 0 || idx==1) && input[idx]!='/'){
-                break;
+    
+        // 커스텀 구분자 처리 (//로 시작하는지 확인)
+        if (input.startsWith("//")) {
+            let idx = input.indexOf("\\n"); // \n의 위치 찾기
+            if (idx !== -1) {
+                this.seperator = input.substring(2, idx); // // 이후부터 \n까지를 구분자로 추출
+                this.input = input.substring(idx + 2); // \n 이후의 문자열이 숫자 리스트
+                this.type = CalculatorType.custom;
+            } else {
+                this.type = CalculatorType.error; // 잘못된 입력 처리
             }
-            while (input[idx]!='\n'){
-                this.seperator += input[idx]; 
-                idx++;
-            }
-            if (input[idx]=='\n'){
-                isFindSeperator = true;
-                break;
-            }
-            idx++;
+        } else {
+            this.type = CalculatorType.error; // 잘못된 입력 처리
         }
-        if (isFindSeperator){
-            this.type = CalculatorType.custom;
-            this.input = input.substr(idx+1, input.length - idx);    
-        }else{
-            this.type = CalculatorType.error;
-        }
-        return;
     }
+    
+
     // 구분자로 나누기
     splitString() {
         switch(this.type){
@@ -61,11 +92,13 @@ class StringAdder {
                 return new Array();
         }
     }
+
     // 숫자로 변환 후 덧셈
     addNumber(splitList) {
         for (let i=0; i<splitList.length; i++){
             let number = Number(splitList[i]);
-            if (number == NaN){
+            // 숫자가 아닌 경우 예외 처리
+            if (isNaN(number)){
                 this.type = CalculatorType.error;
                 break;
             }
@@ -74,19 +107,18 @@ class StringAdder {
     }
     // 출력
     printResult() {
-        try{
-            if(this.type == CalculatorType.error){
-                throw new Error("[Error]");
-            }else{
-                Console.print("결과 : " + this.result);
-            }
+        if(this.type == CalculatorType.error){
+            // throw new Error("[Error]");
+            throw Error("[ERROR]");
+        }else{
+            // console.log(this.result);
+            MissionUtils.Console.print("결과 : " + this.result);
         }
     }
 
     doCalculator(){
         this.getSeperator(this.input);
-        this.splitString();
-        this.addNumber();
+        this.addNumber(this.splitString());
         this.printResult();
     }
 }
